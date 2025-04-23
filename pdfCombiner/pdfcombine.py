@@ -13,6 +13,7 @@ class PDFMergerAppDragDrop:
     def __init__(self, root):
         self.root = root
         self.root.title("PDF Merger - Dark Mode + Drag & Drop + Preview")
+        self.root.bind("<Button-1>", self.on_root_click)
 
         self.files = []
 
@@ -137,6 +138,13 @@ class PDFMergerAppDragDrop:
             self.preview_label.config(image=self.preview_img)
         except Exception as e:
             messagebox.showerror("Error", f"Cannot preview PDF:\n{e}")
+    def on_root_click(self, event):
+        widget = event.widget
+        # If they clicked *outside* the listbox, clear the preview
+        if widget != self.listbox:
+            self.listbox.selection_clear(0, tk.END)  # Clear any selection in the list
+            self.preview_label.config(image='')  # Clear the preview
+
 
 
 if __name__ == "__main__":
