@@ -1,20 +1,22 @@
-# merge_pdfs_gui_darkmode_preview.py
+# merge_pdfs_gui_darkmode_dragdrop.py
 
 import tkinter as tk
 from tkinter import filedialog, messagebox
+from tkinterdnd2 import DND_FILES, TkinterDnD
 from PyPDF2 import PdfMerger
 import fitz  # PyMuPDF
 from PIL import Image, ImageTk
 import io
+import os
 
-class PDFMergerAppDarkPreview:
+class PDFMergerAppDragDrop:
     def __init__(self, root):
         self.root = root
-        self.root.title("PDF Merger - Dark Mode + Preview")
+        self.root.title("PDF Merger - Dark Mode + Drag & Drop + Preview")
 
         self.files = []
 
-        # Set dark mode colors
+        # Dark mode colors
         self.bg_color = "#2e2e2e"
         self.fg_color = "#ffffff"
         self.button_color = "#444444"
@@ -25,7 +27,8 @@ class PDFMergerAppDarkPreview:
         frame = tk.Frame(root, bg=self.bg_color)
         frame.pack(padx=10, pady=10, side='left')
 
-        self.select_button = tk.Button(frame, text="Select PDFs", command=self.select_pdfs, bg=self.button_color, fg=self.fg_color)
+        self.select_button = tk.Button(frame, text="Select PDFs", command=self.select_pdfs,
+                                       bg=self.button_color, fg=self.fg_color)
         self.select_button.pack(fill='x')
 
         self.listbox = tk.Listbox(frame, width=50, selectmode=tk.SINGLE, bg=self.bg_color, fg=self.fg_color,
@@ -33,13 +36,20 @@ class PDFMergerAppDarkPreview:
         self.listbox.pack(pady=5)
         self.listbox.bind('<<ListboxSelect>>', self.show_preview)
 
-        self.up_button = tk.Button(frame, text="Move Up", command=self.move_up, bg=self.button_color, fg=self.fg_color)
+        # Enable drag and drop
+        self.listbox.drop_target_register(DND_FILES)
+        self.listbox.dnd_bind('<<Drop>>', self.drop_files)
+
+        self.up_button = tk.Button(frame, text="Move Up", command=self.move_up,
+                                   bg=self.button_color, fg=self.fg_color)
         self.up_button.pack(fill='x', pady=(5, 0))
 
-        self.down_button = tk.Button(frame, text="Move Down", command=self.move_down, bg=self.button_color, fg=self.fg_color)
+        self.down_button = tk.Button(frame, text="Move Down", command=self.move_down,
+                                     bg=self.button_color, fg=self.fg_color)
         self.down_button.pack(fill='x')
 
-        self.merge_button = tk.Button(frame, text="Merge and Save", command=self.save_pdf, bg=self.button_color, fg=self.fg_color)
+        self.merge_button = tk.Button(frame, text="Merge and Save", command=self.save_pdf,
+                                      bg=self.button_color, fg=self.fg_color)
         self.merge_button.pack(fill='x', pady=(10, 0))
 
         # Preview area
@@ -56,6 +66,13 @@ class PDFMergerAppDarkPreview:
         if files:
             self.files = list(files)
             self.refresh_listbox()
+
+    def drop_files(self, event):
+        dropped_files = self.root.tk.splitlist(event.data)
+        for file in dropped_files:
+            if file.lower().endswith('.pdf') and file not in self.files:
+                self.files.append(file)
+        self.refresh_listbox()
 
     def refresh_listbox(self):
         self.listbox.delete(0, tk.END)
@@ -108,17 +125,17 @@ class PDFMergerAppDarkPreview:
         filepath = self.files[index]
         try:
             doc = fitz.open(filepath)
-            page = doc.load_page(0)  # Load first page
-            pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))  # Zoom 2x
+            page = doc.load_page(0)
+            pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
             img_data = pix.tobytes("png")
             img = Image.open(io.BytesIO(img_data))
-            img.thumbnail((400, 400))  # Resize preview if needed
+            img.thumbnail((400, 400))
             self.preview_img = ImageTk.PhotoImage(img)
             self.preview_label.config(image=self.preview_img)
         except Exception as e:
             messagebox.showerror("Error", f"Cannot preview PDF:\n{e}")
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = PDFMergerAppDarkPreview(root)
+    root = TkinterDnD.Tk()  # Use TkinterDnD instead of tk.Tk()
+    app = PDFMergerAppDragDrop(root)
     root.mainloop()
