@@ -10,10 +10,12 @@ import io
 import os
 
 class PDFMergerAppDragDrop:
+    #- Dark Mode + Drag & Drop + Preview
+    
     def __init__(self, root):
         self.root = root
-        self.root.title("PDF Merger - Dark Mode + Drag & Drop + Preview")
-        self.listbox.bind('<<ListboxSelect>>', self.show_preview)
+        self.root.title("PDF Merger")
+        #self.listbox.bind('<<ListboxSelect>>', self.show_preview)
         self.root.bind("<Button-1>", self.on_root_click)
 
 
