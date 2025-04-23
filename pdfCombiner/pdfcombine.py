@@ -1,33 +1,42 @@
-# merge_pdfs_gui_advanced.py
+# merge_pdfs_gui_darkmode.py
 
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PyPDF2 import PdfMerger
 
-class PDFMergerApp:
+class PDFMergerAppDark:
     def __init__(self, root):
         self.root = root
-        self.root.title("Advanced PDF Merger")
+        self.root.title("PDF Merger - Dark Mode")
         
         self.files = []
 
-        frame = tk.Frame(root)
+        # Set dark mode colors
+        self.bg_color = "#2e2e2e"
+        self.fg_color = "#ffffff"
+        self.button_color = "#444444"
+        self.highlight_color = "#666666"
+
+        self.root.configure(bg=self.bg_color)
+
+        frame = tk.Frame(root, bg=self.bg_color)
         frame.pack(padx=10, pady=10)
 
-        self.select_button = tk.Button(frame, text="Select PDFs", command=self.select_pdfs)
+        self.select_button = tk.Button(frame, text="Select PDFs", command=self.select_pdfs, bg=self.button_color, fg=self.fg_color)
         self.select_button.pack(fill='x')
 
-        self.listbox = tk.Listbox(frame, width=80, selectmode=tk.SINGLE)
+        self.listbox = tk.Listbox(frame, width=80, selectmode=tk.SINGLE, bg=self.bg_color, fg=self.fg_color,
+                                  selectbackground=self.highlight_color, selectforeground=self.fg_color)
         self.listbox.pack(pady=5)
 
-        self.up_button = tk.Button(frame, text="Move Up", command=self.move_up)
-        self.up_button.pack(fill='x', pady=(5,0))
+        self.up_button = tk.Button(frame, text="Move Up", command=self.move_up, bg=self.button_color, fg=self.fg_color)
+        self.up_button.pack(fill='x', pady=(5, 0))
 
-        self.down_button = tk.Button(frame, text="Move Down", command=self.move_down)
+        self.down_button = tk.Button(frame, text="Move Down", command=self.move_down, bg=self.button_color, fg=self.fg_color)
         self.down_button.pack(fill='x')
 
-        self.merge_button = tk.Button(frame, text="Merge and Save", command=self.save_pdf)
-        self.merge_button.pack(fill='x', pady=(10,0))
+        self.merge_button = tk.Button(frame, text="Merge and Save", command=self.save_pdf, bg=self.button_color, fg=self.fg_color)
+        self.merge_button.pack(fill='x', pady=(10, 0))
 
     def select_pdfs(self):
         files = filedialog.askopenfilenames(
@@ -83,5 +92,5 @@ class PDFMergerApp:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = PDFMergerApp(root)
+    app = PDFMergerAppDark(root)
     root.mainloop()
