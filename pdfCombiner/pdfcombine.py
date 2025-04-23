@@ -1,14 +1,17 @@
-# merge_pdfs_gui_darkmode.py
+# merge_pdfs_gui_darkmode_preview.py
 
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PyPDF2 import PdfMerger
+import fitz  # PyMuPDF
+from PIL import Image, ImageTk
+import io
 
-class PDFMergerAppDark:
+class PDFMergerAppDarkPreview:
     def __init__(self, root):
         self.root = root
-        self.root.title("PDF Merger - Dark Mode")
-        
+        self.root.title("PDF Merger - Dark Mode + Preview")
+
         self.files = []
 
         # Set dark mode colors
@@ -20,14 +23,15 @@ class PDFMergerAppDark:
         self.root.configure(bg=self.bg_color)
 
         frame = tk.Frame(root, bg=self.bg_color)
-        frame.pack(padx=10, pady=10)
+        frame.pack(padx=10, pady=10, side='left')
 
         self.select_button = tk.Button(frame, text="Select PDFs", command=self.select_pdfs, bg=self.button_color, fg=self.fg_color)
         self.select_button.pack(fill='x')
 
-        self.listbox = tk.Listbox(frame, width=80, selectmode=tk.SINGLE, bg=self.bg_color, fg=self.fg_color,
+        self.listbox = tk.Listbox(frame, width=50, selectmode=tk.SINGLE, bg=self.bg_color, fg=self.fg_color,
                                   selectbackground=self.highlight_color, selectforeground=self.fg_color)
         self.listbox.pack(pady=5)
+        self.listbox.bind('<<ListboxSelect>>', self.show_preview)
 
         self.up_button = tk.Button(frame, text="Move Up", command=self.move_up, bg=self.button_color, fg=self.fg_color)
         self.up_button.pack(fill='x', pady=(5, 0))
@@ -37,6 +41,12 @@ class PDFMergerAppDark:
 
         self.merge_button = tk.Button(frame, text="Merge and Save", command=self.save_pdf, bg=self.button_color, fg=self.fg_color)
         self.merge_button.pack(fill='x', pady=(10, 0))
+
+        # Preview area
+        preview_frame = tk.Frame(root, bg=self.bg_color)
+        preview_frame.pack(padx=10, pady=10, side='right')
+        self.preview_label = tk.Label(preview_frame, bg=self.bg_color)
+        self.preview_label.pack()
 
     def select_pdfs(self):
         files = filedialog.askopenfilenames(
@@ -90,7 +100,25 @@ class PDFMergerAppDark:
             except Exception as e:
                 messagebox.showerror("Error", str(e))
 
+    def show_preview(self, event):
+        selection = self.listbox.curselection()
+        if not selection:
+            return
+        index = selection[0]
+        filepath = self.files[index]
+        try:
+            doc = fitz.open(filepath)
+            page = doc.load_page(0)  # Load first page
+            pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))  # Zoom 2x
+            img_data = pix.tobytes("png")
+            img = Image.open(io.BytesIO(img_data))
+            img.thumbnail((400, 400))  # Resize preview if needed
+            self.preview_img = ImageTk.PhotoImage(img)
+            self.preview_label.config(image=self.preview_img)
+        except Exception as e:
+            messagebox.showerror("Error", f"Cannot preview PDF:\n{e}")
+
 if __name__ == "__main__":
     root = tk.Tk()
-    app = PDFMergerAppDark(root)
+    app = PDFMergerAppDarkPreview(root)
     root.mainloop()
