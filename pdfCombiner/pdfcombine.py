@@ -120,7 +120,10 @@ class PDFMergerAppDragDrop:
     def show_preview(self, event):
         selection = self.listbox.curselection()
         if not selection:
+            # No selection, clear the preview
+            self.preview_label.config(image='')
             return
+
         index = selection[0]
         filepath = self.files[index]
         try:
@@ -134,6 +137,7 @@ class PDFMergerAppDragDrop:
             self.preview_label.config(image=self.preview_img)
         except Exception as e:
             messagebox.showerror("Error", f"Cannot preview PDF:\n{e}")
+
 
 if __name__ == "__main__":
     root = TkinterDnD.Tk()  # Use TkinterDnD instead of tk.Tk()
