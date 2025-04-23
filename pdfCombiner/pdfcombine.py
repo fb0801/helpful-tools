@@ -140,6 +140,7 @@ class PDFMergerAppDragDrop:
             self.preview_label.config(image=self.preview_img)
         except Exception as e:
             messagebox.showerror("Error", f"Cannot preview PDF:\n{e}")
+
     def on_root_click(self, event):
         widget = event.widget
         # If they clicked *outside* the listbox, clear the preview
@@ -147,7 +148,7 @@ class PDFMergerAppDragDrop:
             self.listbox.selection_clear(0, tk.END)  # Clear any selection in the list
             self.preview_label.config(image='')  # Clear the preview
 
-    def on_on_root_click(self, event):
+    def on_root_click(self, event):
         widget = event.widget
         # If they clicked *outside* the listbox, clear the preview
         if widget != self.listbox:
