@@ -40,18 +40,20 @@ class PDFMergerAppDragDrop:
                                   selectbackground=self.highlight_color, selectforeground=self.fg_color)
         self.listbox.pack(pady=5)
         self.listbox.bind('<<ListboxSelect>>', self.show_preview)
+        self.listbox.bind("<Button-1>", self.start_drag)
+        self.listbox.bind("ButtonRelease-1>", self.end_drag)
 
         # Enable drag and drop
         self.listbox.drop_target_register(DND_FILES)
         self.listbox.dnd_bind('<<Drop>>', self.drop_files)
 
-        self.up_button = tk.Button(frame, text="Move Up", command=self.move_up,
-                                   bg=self.button_color, fg=self.fg_color)
-        self.up_button.pack(fill='x', pady=(5, 0))
+        #self.up_button = tk.Button(frame, text="Move Up", command=self.move_up,
+                                   #bg=self.button_color, fg=self.fg_color)
+        #self.up_button.pack(fill='x', pady=(5, 0))
 
-        self.down_button = tk.Button(frame, text="Move Down", command=self.move_down,
-                                     bg=self.button_color, fg=self.fg_color)
-        self.down_button.pack(fill='x')
+        #self.down_button = tk.Button(frame, text="Move Down", command=self.move_down,
+        #                             bg=self.button_color, fg=self.fg_color)
+        #self.down_button.pack(fill='x')
 
         self.merge_button = tk.Button(frame, text="Merge and Save", command=self.save_pdf,
                                       bg=self.button_color, fg=self.fg_color)
@@ -156,6 +158,22 @@ class PDFMergerAppDragDrop:
         if widget != self.listbox:
             self.listbox.selection_clear(0, tk.END)  # Clear any selection in the list
             self.preview_label.config(image='')  # Clear the preview
+
+    def start_drag(self, event):
+        self.drag_index = self.listbox.nearest(event.y)
+    
+    def end_drag(self, event):
+        drop_index = self.listbox.nearest(event.y)
+        if drop_index == self.drag_index:
+            return #no change
+        
+        #reoder file list
+        file = self.files.pop(self.drag_index)
+        self.files.insert(drop_index, file)
+
+        #refresh list
+        self.refresh_listbox()
+        self.listbox.selection_set(drop_index)
 
 
 if __name__ == "__main__":
