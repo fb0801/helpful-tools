@@ -47,13 +47,13 @@ class PDFMergerAppDragDrop:
         self.listbox.drop_target_register(DND_FILES)
         self.listbox.dnd_bind('<<Drop>>', self.drop_files)
 
-        #self.up_button = tk.Button(frame, text="Move Up", command=self.move_up,
-                                   #bg=self.button_color, fg=self.fg_color)
-        #self.up_button.pack(fill='x', pady=(5, 0))
+        self.up_button = tk.Button(frame, text="Move Up", command=self.move_up,
+                                   bg=self.button_color, fg=self.fg_color)
+        self.up_button.pack(fill='x', pady=(5, 0))
 
-        #self.down_button = tk.Button(frame, text="Move Down", command=self.move_down,
-        #                             bg=self.button_color, fg=self.fg_color)
-        #self.down_button.pack(fill='x')
+        self.down_button = tk.Button(frame, text="Move Down", command=self.move_down,
+                                     bg=self.button_color, fg=self.fg_color)
+        self.down_button.pack(fill='x')
 
         self.merge_button = tk.Button(frame, text="Merge and Save", command=self.save_pdf,
                                       bg=self.button_color, fg=self.fg_color)
