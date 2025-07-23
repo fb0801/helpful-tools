@@ -1,47 +1,38 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from pdf2docx import Converter
-from pdf2image import convert_from_path
-from PIL import Image
-import pytesseract
-from docx import Document
+import subprocess
 import os
+import tempfile
+import shutil
 
-def is_scanned_pdf(pdf_path):
+def ocr_pdf(input_pdf, output_pdf):
     try:
-        images = convert_from_path(pdf_path, first_page=1, last_page=1)
-        text = pytesseract.image_to_string(images[0])
-        return len(text.strip()) > 0
-    except Exception:
+        subprocess.run(['ocrmypdf', '--force-ocr', input_pdf, output_pdf], check=True)
+        return True
+    except Exception as e:
+        print("OCR failed:", e)
         return False
 
 def convert_pdf_to_word(pdf_path, output_path):
+    cv = Converter(pdf_path)
+    cv.convert(output_path, start=0, end=None)
+    cv.close()
+
+def is_scanned_pdf(pdf_path):
     try:
-        # Try direct conversion
-        cv = Converter(pdf_path)
-        cv.convert(output_path, start=0, end=None)
-        cv.close()
-        return True
-    except Exception as e:
-        print("Direct conversion failed:", e)
+        from pdf2image import convert_from_path
+        from pytesseract import image_to_string
+        images = convert_from_path(pdf_path, first_page=1, last_page=1)
+        text = image_to_string(images[0])
+        return len(text.strip()) == 0  # empty text means scanned
+    except:
         return False
 
-def convert_pdf_to_word_ocr(pdf_path, output_path):
-    images = convert_from_path(pdf_path)
-    doc = Document()
-
-    for img in images:
-        text = pytesseract.image_to_string(img)
-        doc.add_paragraph(text)
-
-    doc.save(output_path)
-
-def select_pdf():
+def process_file():
     pdf_path = filedialog.askopenfilename(
-        filetypes=[("PDF Files", "*.pdf")],
-        title="Select a PDF to Convert"
+        filetypes=[("PDF Files", "*.pdf")], title="Select PDF"
     )
-
     if not pdf_path:
         return
 
@@ -50,36 +41,39 @@ def select_pdf():
         filetypes=[("Word Documents", "*.docx")],
         title="Save As"
     )
-
     if not output_path:
         return
 
-    try:
-        status_label.config(text="Converting...")
-        root.update()
+    status_label.config(text="Processing...")
+    root.update()
 
-        if convert_pdf_to_word(pdf_path, output_path):
-            messagebox.showinfo("Success", f"PDF converted to Word:\n{output_path}")
+    try:
+        if is_scanned_pdf(pdf_path):
+            temp_pdf = tempfile.mktemp(suffix=".pdf")
+            success = ocr_pdf(pdf_path, temp_pdf)
+            if not success:
+                raise Exception("OCR failed.")
+            convert_pdf_to_word(temp_pdf, output_path)
+            os.remove(temp_pdf)
+            messagebox.showinfo("Success", "Scanned PDF converted with OCR!")
         else:
-            # Fall back to OCR if direct conversion fails
-            convert_pdf_to_word_ocr(pdf_path, output_path)
-            messagebox.showinfo("OCR Used", f"Scanned PDF converted with OCR:\n{output_path}")
+            convert_pdf_to_word(pdf_path, output_path)
+            messagebox.showinfo("Success", "PDF converted successfully!")
     except Exception as e:
-        messagebox.showerror("Error", f"Conversion failed:\n{e}")
+        messagebox.showerror("Error", f"Failed to convert:\n{e}")
     finally:
         status_label.config(text="")
 
-# GUI setup
+# GUI
 root = tk.Tk()
-root.title("PDF to Word Converter with OCR")
+root.title("PDF to Word Converter (with OCR)")
+root.geometry("420x200")
+root.configure(bg="#2d2d2d")
 
-root.geometry("400x200")
-root.configure(bg="#2e2e2e")
-
-btn = tk.Button(root, text="Select PDF", command=select_pdf, bg="#444", fg="white", font=("Arial", 14))
+btn = tk.Button(root, text="Select PDF", command=process_file, font=("Arial", 14), bg="#444", fg="white")
 btn.pack(pady=30)
 
-status_label = tk.Label(root, text="", bg="#2e2e2e", fg="white", font=("Arial", 12))
+status_label = tk.Label(root, text="", bg="#2d2d2d", fg="white", font=("Arial", 11))
 status_label.pack()
 
 root.mainloop()
